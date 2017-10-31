@@ -1,0 +1,1673 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" />
+        <meta charset="utf-8">
+
+        <link rel="stylesheet" href="{% static 'css/semantic.css' %}" media="screen" title="no title" charset="utf-8">
+        <link rel="stylesheet" href="{% static 'css/list_custom.css' %}"  media="screen" title="no title" charset="utf-8">
+        <link rel="stylesheet" href="{% static 'css/animate.css' %}" />
+
+        <script src="{% static 'js/vue1.js' %}"></script>
+        <script src="{% static 'js/reqwest.js' %}"></script>
+        <script src="{% static 'js/js.cookie.js' %}"></script>
+
+        <style type="text/css">
+        [v-cloak] {
+        display: none;
+        }
+        #menu {
+            width: 100px;
+        }
+        .ui.grid.divided.segment.container{
+            min-height: 400px;
+            width:600px !important;
+            border:rgba(255, 0, 0, 0);
+            position: absolute;
+            left: 50%;
+            top:45%;
+            transform: translate(-50%,-50%);
+        }
+
+        .ui.padded.modal.segment.active.siXin {
+            position: absolute;
+            transform: translate(0,-50%);
+            top: 35%;
+        }
+        .ui.borderless.container.siXin.none {
+            position: absolute;
+            left: 50%;
+            top:50%;
+            transform: translate(-50%,-50%);
+        }
+        .comment {
+            position: absolute;
+        }
+        .ui.padded.modal.segment.active.del {
+                position: absolute;
+                width:300px!important;
+                min-height: 100px;
+                left:110%;
+                top: 40%;
+                transform: translate(0, -50%);
+        }
+        .anniu {
+            position: relative;
+            left: 18%;
+            margin-top: 10px;
+    }
+
+        .ui.active.modal.siXinTiShi {
+            z-index: 2;
+            width: 300px;
+            position: absolute;
+            /*transform: translate(-50%,-50%);*/
+            top: 10%;
+            left: 100%;
+        }
+
+
+            .unscrollable{
+                    height:100%;
+                    overflow:hidden;
+                }
+
+            .ui.padded.modal.active {
+                min-height: 388px;
+                width:600px !important;
+                border:rgba(255, 0, 0, 0);
+                position: absolute;
+                left: 61%;
+                top:8%;
+                /*transform: translate(-50%,-50%);*/
+                 }
+
+             .five.wide.column {
+                     background: url('/static/images/red_regi.jpg');
+                     background-size: cover;
+                     background-position: 60% 0%;
+                 }
+
+
+            form {
+                margin-top: 60px;
+            }
+            h1,h3,h4{
+                font-family: 'Play', sans-serif !important;
+            }
+
+            .ui.vertical.inverted.detail.segment {
+                height: 400px;
+                background-image: url('/static/images/on-table.jpg')!important;
+                background-size: cover;
+                background-repeat: no-repeat;
+            }
+        </style>
+    </head>
+
+
+    <body v-cloak id="app"  class="dimmable {{ canScroll }}">
+        <div class="ui inverted top fixed red menu borderless menu">
+        <div class="header item">
+            <a href="{% url 'index' %}">
+                <div class="ui image">
+                    <img src="\static\images\tenlogo.png" style="height:30px;width=30px; object-fit: cover" alt="">
+                </div>
+            </a>
+
+
+   {% verbatim %}
+   <title v-cloak>{{ video.title }}</title>
+   
+        </div>
+
+        <div class="right menu">
+	    <div style="right:15%" class="item">
+                <div class="ui inverted icon input">
+                  <input @keyup.enter="searchbutton()" v-model="searchword" type="text" placeholder="Search...">
+                  <i v-on:click="searchbutton" class="circular search link icon"></i>
+                </div>
+            </div>
+            <div class="item">
+                <h5 class="ui inverted header">
+
+                        <div  @mouseover="infoShwich1" @mouseout="infoShwich2" v-if="userinfo.avatar" class="ui mini circular image">
+                            <img src="{{userinfo.avatar}}" alt="" />
+                        </div>
+                        <div v-else  class="ui mini circular image">
+                            <img src="\static\images\default.png" alt="" />
+                        </div>
+                    <span >{{ userinfo.nickname }}</span>
+                </h5>
+            </div>
+
+                <div  class="item">
+                    <a v-show="modal.lt_show" v-on:click="logOut" class="ui inverted circular button">Logout</a>
+                    <a v-show="modal.lg_show" v-on:click="signUp" class="ui inverted circular button">Signup/Login</a>
+                </div>
+        </div>
+    </div>
+
+    <div @click="modal.siXinShow=!modal.siXinShow" v-show="modal.siXinShow" class="ui dimmer animated  active"></div>
+    <div v-show="modal.siXinShow"  class="ui padded modal segment active siXin">
+        <i v-on:click="modal.siXinShow=!modal.siXinShow" class="icon tiny close" ></i>
+        <div v-show="modal.siXinTiShi" class="ui active modal siXinTiShi animated {{fade}} ">
+            <h4 class="ui center aligned header">回复成功</h4>
+        </div>
+        <h3 class="ui horizontal  divider header" style="">我的信息</h3>
+
+        <div v-show="!userinfo.myGetSixin.length" class="ui center aligned borderless container siXin none" style="border:none" >
+            <span><i style="color:#DCDCDC" class="alarm huge outline icon"></i></span>
+        </br></br></br>
+            <div style="color:#DCDCDC">还没有消息</div>
+        </div>
+
+        <div v-if="userinfo.myGetSixin.length" class="ui container siXin" >
+            <div  class="ui segment comments" style="border:none;OVERFLOW-Y: scroll;height:300px">
+
+                    <div  v-for="siXin in siXinLst" v-show="!siXin.siXinApearOrHide" class="comment">
+                        <div v-if="siXin.emiter.avatar" class="avatar">
+                            <img src="{{siXin.emiter.avatar}}"  alt="" />
+                        </div>
+                        <div v-else class="avatar">
+                            <img src="\static\images\default.png"  alt="" />
+                        </div>
+                        <div class="content">
+                                <a href="javascript:void(0)" class="author">{{ siXin.emiter.nickname }}</a>
+                            <div class="metadata">
+                                <div class="date">{{ siXin.createtime }}</div>
+                            </div>
+                            <p class="text" style="font-family: 'Raleway', sans-serif;">
+                                {{siXin.content}}
+                            </p>
+
+                            <a v-on:click="siXin.inputApearOride=true,siXin.huiFuBt=true,siXin.quXiaoBt=true" v-show="!siXin.huiFuBt" href="javascript:void(0)">回复</a>
+                            <a v-on:click="siXin.inputApearOride=false,siXin.huiFuBt=false,siXin.quXiaoBt=false" v-show="siXin.quXiaoBt"  href="javascript:void(0)">取消</a>
+                            <a v-on:click="siXin.qurenShow=true"  href="javascript:void(0)">删除</a>
+                        </div>
+
+                        <div class="ui divider"></div>
+                        <div v-show="siXin.inputApearOride" class="ui action fluid input">
+                            <input style="width:500px;height:35px;" @keydown.enter="huiFuSiXin(siXin.getter.nickname,siXin.huiFu,siXin.content,siXin.emiter.id),siXin.huiFu='',siXin.inputApearOride=false,siXin.huiFuBt=false,siXin.quXiaoBt=false"
+                              v-model="siXin.huiFu" v-on:click="siXin.showBt=true" type="text"  placeholder="你的回复">
+                             <button v-on:click="huiFuSiXin(siXin.getter.nickname,siXin.huiFu,siXin.content,siXin.emiter.id,siXin.content),siXin.huiFu='',siXin.inputApearOride=false,siXin.huiFuBt=false,siXin.quXiaoBt=false"  style="margin-left:20px" class="ui inverted  red  {{siXin.huiFu==''?'disabled':''}} button">
+                             <i style="">Click</i>
+                         </button>
+                        </div>
+
+                        <div v-show="siXin.qurenShow" class="ui padded modal segment active del">
+                            <h4 class="ui center aligned header">确认删除吗？</h4>
+                            <div class="anniu">
+                                <button @click="deleteSiXin(siXin.id),siXin.siXinApearOrHide=!siXin.siXinApearOrHide,siXin.qurenShow=false" class="ui secondary button">
+                                  Okay
+                                </button>
+                                <button v-on:click="siXin.qurenShow=false" class="ui button">
+                                  Cancel
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+             </div>
+        </div>
+    </div>
+
+    <div @click="modal.dongTaiShow=!modal.dongTaiShow" v-show="modal.dongTaiShow" class="ui dimmer animated  active"></div>
+    <div v-show="modal.dongTaiShow"  class="ui padded modal segment active siXin">
+        <i v-on:click="modal.dongTaiShow=!modal.dongTaiShow" class="icon tiny close" ></i>
+
+        <h3 class="ui horizontal  divider header" style="">关注者动态</h3>
+
+        <div v-show="!dongTaiLst.length" class="ui center aligned borderless container siXin none" style="border:none" >
+            <span><i style="color:#DCDCDC" class="alarm huge outline icon"></i></span>
+        </br></br></br>
+            <div style="color:#DCDCDC">还没有动态</div>
+        </div>
+
+        <div v-if="dongTaiLst.length" class="ui container siXin" >
+            <div  class="ui segment comments" style="border:none;OVERFLOW-Y: scroll;height:300px">
+
+                <div  class="ui feed">
+                  <div v-for="article in dongTaiLst" class="event">
+                    <div class="label">
+                      <img src="{{article.owner.avatar}}">
+                    </div>
+                    <div class="content">
+                      <div class="date">
+                        {{article.createtime}}
+                      </div>
+                      <div class="summary">
+                         <a  @click="prePeopleDetail(article.owner.id)" >{{article.owner.nickname}}</a> write a article
+                      </div>
+
+                          <a v-on:click="detailCard(article.id)" class="extra text">
+                            {{article.title}}
+                        </a>
+
+                    </div>
+                  </div>
+              </div>
+             </div>
+        </div>
+    </div>
+
+    <div @click="modal.zanShow=!modal.zanShow" v-show="modal.zanShow" class="ui dimmer animated fadeIn active"></div>
+    <div v-show="modal.zanShow"  class="ui padded modal segment active siXin">
+        <i v-on:click="modal.zanShow=!modal.zanShow" class="icon tiny close" ></i>
+
+        <h3 class="ui horizontal  divider header" style="">动态</h3>
+
+        <div v-if="!(zanLst.length||pingLunZanLst.length)" class="ui center aligned borderless container siXin none" style="border:none" >
+            <span><i style="color:#DCDCDC" class="alarm huge outline icon"></i></span>
+        </br></br></br>
+            <div style="color:#DCDCDC">没有获得赞</div>
+        </div>
+
+        <div v-if="zanLst.length||pingLunZanLst.length" class="ui container siXin" >
+            <div  class="ui segment comments" style="border:none;OVERFLOW-Y: scroll;height:300px">
+
+                <div  class="ui feed">
+                  <div v-for="zan in zanLst" class="event">
+                    <div class="label">
+                      <img src="{{zan.voter.avatar}}">
+                    </div>
+                    <div class="content">
+                      <div class="date">
+                        {{zan.createtime}}
+                      </div>
+                      <div class="summary">
+                         <a  @click="prePeopleDetail(zan.voter.id)">{{zan.voter.nickname}}</a>  赞了你的文章
+                         <a v-on:click="detailCard(zan.video.id)" class="extra text">{{zan.video.title}}</a>
+                      </div>
+
+                    </div>
+                  </div>
+                  <div class="ui horizontal divider">评论</div>
+                  <div v-for="pingLunZan in pingLunZanLst" class="event">
+                    <div class="label">
+                      <img src="{{pingLunZan.voter.avatar}}">
+                    </div>
+                    <div class="content">
+                      <div class="date">
+                        {{pingLunZan.createtime}}
+                      </div>
+                      <div class="summary">
+                         <a  @click="prePeopleDetail(pingLunZan.voter.id)">{{pingLunZan.voter.nickname}}</a>  赞了你在
+                         <a v-on:click="detailCard(pingLunZan.comment.belong_to.id)" class="extra text">{{pingLunZan.comment.belong_to.title}}</a> 下的评论
+                      </div>
+
+                    </div>
+                  </div>
+              </div>
+             </div>
+        </div>
+    </div>
+
+
+    <div @click="modal.pingLunShow=!modal.pingLunShow" v-show="modal.pingLunShow" class="ui dimmer animated fadeIn active"></div>
+    <div v-show="modal.pingLunShow"  class="ui padded modal segment active siXin">
+        <i v-on:click="modal.pingLunShow=!modal.pingLunShow" class="icon tiny close" ></i>
+
+        <h3 class="ui horizontal  divider header" style="">评论动态</h3>
+
+        <div v-if="!pingLunLst.length||articlePingLunLst.length" class="ui center aligned borderless container siXin none" style="border:none" >
+            <span><i style="color:#DCDCDC" class="alarm huge outline icon"></i></span>
+        </br></br></br>
+            <div style="color:#DCDCDC">还没有动态</div>
+        </div>
+
+        <div v-if="pingLunLst.length" class="ui container siXin" >
+            <div  class="ui segment comments" style="border:none;OVERFLOW-Y: scroll;height:300px">
+
+                <div  class="ui feed">
+                  <div v-for="pingLun in pingLunLst" class="event">
+                    <div class="label">
+                      <img src="{{pingLun.commenter.avatar}}">
+                    </div>
+                    <div class="content">
+                      <div class="date">
+                        {{pingLun.createtime}}
+                      </div>
+                      <div class="summary">
+                         <a  @click="prePeopleDetail(pingLun.commenter.id)">{{pingLun.commenter.nickname}}</a> 回复了你在
+                         <a v-on:click="detailCard(pingLun.belong_to.belong_to.id)" class="extra text">{{pingLun.belong_to.belong_to.title}}</a>
+                         下的评论
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="ui horizontal divider">文章</div>
+                  <div v-for="articlePingLun in articlePingLunLst" class="event">
+                    <div class="label">
+                      <img src="{{articlePingLun.commenter.avatar}}">
+                    </div>
+                    <div class="content">
+                      <div class="date">
+                        {{articlePingLun.createtime}}
+                      </div>
+                      <div class="summary">
+                         <a  @click="prePeopleDetail(articlePingLun.commenter.id)">{{articlePingLun.commenter.nickname}}</a> 评论了你的文章
+                         <a v-on:click="detailCard(articlePingLun.belong_to.id)" class="extra text">{{articlePingLun.belong_to.title}}</a>
+                      </div>
+                    </div>
+                  </div>
+              </div>
+             </div>
+        </div>
+    </div>
+
+    <div @mouseover="infoShwich1" @mouseout="infoShwich2" id="menu" v-show="modal.info"
+    style="left:89%;top:27%;transform: translate(-50%, -50%);width:150px;"
+    class="ui popup bottom left transition  fixed menu  borderless vertical animated {{fadeIn}} menu">
+      <a v-on:click="inFopage" class="item">
+        修改资料
+      </a>
+      <a @click="write" class="item">
+        写文章
+      </a>
+      <a @click="modal.dongTaiShow=!modal.dongTaiShow,userinfo.dongTaiNum=0,dongTaiNumQingLing(),dongTai()" class="item">
+        关注者动态
+        <div class="floating ui red label" v-if="userinfo.dongTaiNum">{{userinfo.dongTaiNum}}</div>
+      </a>
+      <a @click="modal.pingLunShow=!modal.pingLunShow,userinfo.pingLunNum=0,pingLunNumQingLing(),pingLun(),articlePingLun()" class="item">
+        评论动态
+        <div class="floating ui red label" v-if="userinfo.pingLunNum">{{userinfo.pingLunNum}}</div>
+      </a>
+      <a @click="modal.zanShow=!modal.zanShow,userinfo.zanNum=0,zanNumQingLing(),zan(),pingLunZan()" class="item">
+         谁赞了我
+        <div class="floating ui red label" v-if="userinfo.zanNum">{{userinfo.zanNum}}</div>
+      </a>
+      <a @click="modal.siXinShow=!modal.siXinShow,userinfo.siXinNum=0,siXinNumQingLing()" class="item">
+        私信
+        <div class="floating ui red label" v-if="userinfo.siXinNum">{{userinfo.siXinNum}}</div>
+      </a>
+    </div>
+
+        <div class="ui vertical inverted detail segment" style=""></div>
+
+        <div class="ui basic segment {{videoFade}} container" style="width:700px;border:none;box-shadow:none;margin-top:50px;">
+            <h1 class="ui header">{{ video.title }}</h1>
+            <div  class="ui mini circular image">
+                <img @click="prePeopleDetail(video.owner.id)" href="javascript:void(0)" src="{{video.owner.avatar}}" alt="">
+            </div>
+            <a @click="prePeopleDetail(video.owner.id)" href="javascript:void(0)"><span>{{ video.owner.nickname }}</span></a>
+            <span style="color:#bbbbbb" class="date">
+              {{video.createtime}}
+          </span>
+
+        </br>
+            <i class="icon grey unhide"></i>
+            <span style="color:#bbbbbb">{{video.views}}</span>
+            <span class="" style="color:rgb(226, 226, 226)">|</span>
+            <i class="icon grey checkmark"></i>
+            <span style="color:#bbbbbb">{{ likeVotenum }} people got it</span>
+
+            <p style="white-space:pre-wrap;font-family:sans-serif;font-size:17px">
+{{video.content}}
+            </p>
+            <div class="ui divider"></div>
+
+
+            <form class="ui form"  >
+                <div v-show="true" class="">
+                    <a v-on:click="choicesswich_like" class="ui tiny {{choice_color()}} button " >
+                        <i class="icon checkmark"></i>
+                        Get it!
+                    </a>
+
+                    <a v-on:click="choicesswich_dislike" class="ui {{choice_color1()}} tiny button"  >
+                        <i class="icon bomb"></i>
+                        Hmmm...
+                    </a>
+                </div>
+
+
+
+                <div class="">
+                    <a v-on:click="prePostsave" style="background-color:" class="ui secondary circular tiny right floated icon button">
+                        <i class="pin icon"></i>
+                        {{save_choice}}
+                    </a>
+                </div>
+            </form>
+        </div>
+
+
+        <!-- Comments&Form's here -->
+        <div v-show="modal.queRen" class="ui dimmer animated fadeIn active"></div>
+        <div class="ui segment container" style="width:700px;border:none;box-shadow:none;padding-top;20px;margin-top:30px;">
+            <div class="ui threaded {{loadingOrnot}} borderless segment comments" style="border:none">
+                <h3 class="ui horizontal  divider header" style="">Comments</h3>
+                <!-- <div class="ui   comments" style="border:none"> -->
+
+                        <div v-for="comment in comment_list" v-show="comment.show" class="comment">
+
+                            <div v-show="comment.queRen" style="position:absolute;transform: translate(-50%,-50%);left:102%;top:-50%"
+                            class="ui padded modal segment active del animated bounceIn">
+                                <h4 class="ui center aligned header">确认删除吗？</h4>
+                                <div class="anniu">
+                                    <button v-on:click="deleteCmt(comment.id),comment.show=false,modal.queRen=false,comment.queRen" class="ui secondary button">
+                                      Okay
+                                    </button>
+                                    <button v-on:click="comment.queRen=false,modal.queRen=false" class="ui button">
+                                      Cancel
+                                    </button>
+                                </div>
+                            </div>
+
+                            <a href="javascript:void(0)" @click="prePeopleDetail(comment.commenter.id)" v-if="comment.commenter.avatar" class="avatar">
+
+                                <img src="{{comment.commenter.avatar}}"  alt="" />
+                            </a>
+                            <a href="javascript:void(0)" @click="prePeopleDetail(comment.commenter.id)" v-else class="avatar">
+                                <img src="\static\images\default.png"  alt="" />
+                            </a>
+                            <div class="content">
+                                <a href="javascript:void(0)" @click="prePeopleDetail(comment.commenter.id)" class="author">{{ comment.commenter.nickname }}</a>
+                                <div class="metadata">
+                                    <span class="date">{{ comment.createtime }}</span>
+                                </div>
+                                <div style="font-family:cursive;font-size:18px" class="text" style="font-family: 'Raleway', sans-serif;">
+                                    {{comment.comment}}
+                                </div>
+                                <!-- <div class="action">
+                                    <i v-on:click="comment.thisLike=!comment.thisLike,prePstCmtVo(comment.id,'like'),comment.thisDislike=false,comment.likes+=1" v-show="!comment.thisLike" class="thumbs outline up icon"></i>
+                                    <i v-on:click="comment.thisLike=!comment.thisLike,prePstCmtVo(comment.id,'normal'),comment.likes-=1"  v-show="comment.thisLike" class="thumbs up icon"></i>
+                                    <span>{{comment.likes}}</span>
+                                    <a  @click="comment.queRen=true,modal.queRen=true" v-show="comment.zhuangTai" href="javascript:void(0)">删除</a>
+                                    <a v-on:click="comment.menu=!comment.menu,comment.subtn=!comment.subtn" v-show="comment.zhuangTai==true?false:!comment.subtn"  href="javascript:void(0)">回复</a>
+                                    <a v-on:click="comment.menu=!comment.menu,comment.subtn=!comment.subtn"  v-show="comment.subtn" href="javascript:void(0)">收起↑</a>
+                                    <i v-on:click="comment.thisDislike=!comment.thisDislike,prePstCmtVo(comment.id,'normal')" v-show="comment.thisDislike" class="thumbs down icon"></i>
+                                    <i v-on:click="comment.thisDislike=!comment.thisDislike,comment.thisLike==true?comment.likes-=1:comment.likes-=0,comment.thisLike=false,prePstCmtVo(comment.id,'dislike')"
+                                    v-show="!comment.thisDislike" class="thumbs outline down icon"></i>
+                                </div> -->
+                                <div class="action">
+                                    <i v-on:click="comment.zan=true,prePstCmtVo(comment.id,'like'),comment.likes+=1" v-show="(comment.zan==false)||(comment.zan==null)" class="thumbs outline up icon"></i>
+                                    <i v-on:click="comment.zan=null,prePstCmtVo(comment.id,'normal'),comment.likes-=1"  v-show="comment.zan" class="thumbs up icon"></i>
+                                    <span>{{comment.likes}}</span>
+                                    <a  @click="comment.queRen=true,modal.queRen=true" v-show="comment.zhuangTai" href="javascript:void(0)">删除</a>
+                                    <a v-on:click="comment.menu=!comment.menu,comment.subtn=!comment.subtn" v-show="comment.zhuangTai==true?false:!comment.subtn"  href="javascript:void(0)">回复</a>
+                                    <a v-on:click="comment.menu=!comment.menu,comment.subtn=!comment.subtn"  v-show="comment.subtn" href="javascript:void(0)">收起↑</a>
+                                    <i v-on:click="comment.zan=null,prePstCmtVo(comment.id,'normal')" v-show="comment.zan==false" class="thumbs down icon"></i>
+                                    <i v-on:click="comment.zan==true?comment.likes-=1:comment.likes-=0,comment.zan=false,comment.thisLike=false,prePstCmtVo(comment.id,'dislike')"
+                                    v-show="comment.zan==true||comment.zan==null" class="thumbs outline down icon"></i>
+                                </div>
+                                </div>
+                                    <div class="comments">
+                                        <div v-show="comment.menu" class="ui action fluid input">
+                                            <input  @keydown.enter="prePostcommentCmt(comment.id,comment.Cmt)" @blur="comment.Cmt==''?comment.btshow=!comment.btshow:comment.btshow=true" v-model="comment.Cmt" v-on:click="comment.btshow=true" type="text"  placeholder="comment comment">
+                                            <button v-on:click="prePostcommentCmt(comment.id,comment.Cmt)"  v-show="comment.btshow"  style="" class="ui inverted red tiny {{ cmtCmtBtn(comment.Cmt) }} button">
+                                                <i style="">Click</i>
+                                            </button>
+                                        </div>
+                                        <div v-for="commentCmt in comment.under_commentsCmts" class="comment">
+                                            <a v-if="commentCmt.commenter.avatar" class="avatar">
+                                                <img src="{{commentCmt.commenter.avatar}}"  alt="" />
+                                            </a>
+                                            <a v-else class="avatar">
+                                                <img src="\static\images\default.png"  alt="" />
+                                            </a>
+
+                                            <div class="content">
+                                            <a v-if="commentCmt.commenter.id==video.owner.id?true:false" href="javascript:void(0)" class="author">{{commentCmt.commenter.nickname}}（作者）</a>
+                                            <a v-else href="javascript:void(0)" @click="prePeopleDetail(commentCmt.commenter.id)" class="author">{{commentCmt.commenter.nickname}}</a>
+                                            <span>回复</span>
+                                            <a href="javascript:void(0)" @click="prePeopleDetail(comment.commenter.id)" class="author">{{ comment.commenter.nickname }}</a>
+                                            <div class="metadata">
+                                                <span class="date">{{commentCmt.createtime}}</span>
+                                            </div>
+                                            <!-- style="font-family: 'Raleway', sans-serif;" -->
+                                            <div style="font-family:cursive;font-size:18px" class="text">
+                                                {{commentCmt.comment}}
+                                            </div>
+                                            <!-- <div class="actions">
+                                                <a class="reply">Reply</a>
+                                            </div> -->
+                                            </div>
+                                        </div>
+                                     </div>
+                                    </div>
+            </div>
+
+            <div class="ui divider"></div>
+            <div class="ui action fluid input">
+                <input style="width:500px;height:35px;" @keydown.enter="prePostcomment" @blur="unshowOrnot"  v-model="comment" v-on:click="showOrnot" type="text"  placeholder="Your comment">
+                    <button v-on:click="prePostcomment"  v-show="modal.showOrnot"  style="margin-left:20px" class="animated{{ animatbt }} ui inverted  red  {{commenterror()}} button">
+                    <i style="">Click</i>
+                </button>
+            </div>
+        </div>
+                        
+     <div style="margin-top:70px;" class="ui vertical very padded red segment">
+        <div class="ui grid">
+            <div class="four wide column">
+                <div class="ui image">
+                    <img src="\static\images\ten_red_logo.png" alt="">
+                </div>
+            </div>
+
+            <div class="four wide column">
+                <div class="ui vertical  text menu">
+                    <div class="item">
+                        <h3 class="ui header">信息</h3>
+                    </div>
+
+                    <div class="item">
+                        关于10MINs
+                    </div>
+
+                    <div class="item">
+                        联系我们
+                    </div>
+
+                    <div class="item">
+                        Blog
+                    </div>
+                </div>
+            </div>
+
+            <div class="four wide column">
+                <div class="ui vertical  text menu">
+                    <div class="item">
+                        <h3 class="ui  header">社交网络</h3>
+                    </div>
+
+                    <div class="item">
+                        新浪微博
+                    </div>
+
+                    <div class="item">
+                        微信公众号
+                    </div>
+                </div>
+            </div>
+
+            <div class="four wide column">
+                <div class="ui vertical text menu">
+                    <div class="item">
+                        Designed by
+                    </div>
+                    <div class="item">
+                        <h3 class="ui header logo" style="font-size: 30px;color: rgb(196, 196, 196);">萌面人</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <div style="display:block;attachment:fixed" v-on:click="unSignUp" v-show="modal.dimmerShow" class="ui dimmer animated fadeIn active" ></div>
+            <div v-if="modal.regi_show" class="ui padded modal segment active" >
+                <i v-on:click="unSignUp" class="icon tiny close" ></i>
+
+                <div class="ui grid divided segment container">
+                    <div class="five wide column">
+                        <h4 class="ui inverted header">
+                            <i class="angle left  icon"></i>
+                        </h4>
+                        <h1 class="ui inverted center aligned header" style="font-size: 40px;margin-top:55px">
+                            <p class="sub header">
+                                Welcome to
+                            </p>
+                            10MINs
+                        </h1>
+                    </div>
+
+
+        <div class="eleven wide column">
+            <h4 class="ui inverted right aligned header">
+                <a href="#" v-on:click="modalSwitch_rigeser_login" style="color:#ff695e;">or Login</a>
+            </h4>
+            <form class="ui form" >
+
+                <div class="field">
+                    <label >手机号码：</label>
+                    <div class="ui left icon input">
+                        <input v-model="username" @blur="checkUsername" @click="userChange"  type="text" placeholder="手机号码">
+                          <i class="user icon"></i>
+                    </div>
+
+                    <span   style="color:green;" v-show="modal.usernameCheck"><i class="check green circle icon"></i></span>
+                    <span   style="color:red;"  v-show="modal.inUsernameCheck"><i class="remove red circle icon"></i>{{invalidUser}}</span>
+                    <span  style="color:red;"  v-show="modal.endInUsernameCheck"><i class="remove red circle icon"></i>{{endInvalidUser}}</span>
+                </div>
+
+                <div class="field">
+                    <label >密码：</label>
+                    <div class="ui left icon input">
+                        <input @blur="checkPassword" @click="passwordChange"  v-model="password" type="password"  placeholder="密码不少于6位">
+                        <i class="lock icon"></i>
+                    </div>
+
+                    <span  v-show="modal.error_show1" class="ui inverted red " style="color:red;"><i class="remove red circle icon"></i>The password is invalid</span>
+                    <span   style="color:green;" v-show="modal.error_show2"><i class="check green circle icon"></i></span>
+                </div>
+                <div class="field">
+                    <label >重复密码：</label>
+                    <div class="ui left icon input">
+                        <input @keydown.enter="affRegister" @blur="checkRePassword" @click="rePswChange" v-model="re_password" type="password"  placeholder="Repeat Password">
+                        <i class="lock icon"></i>
+                    </div>
+                    <span  v-show="modal.error_show" style="color:red;"><i class="remove red circle icon"></i>The two passwords are different</span>
+                    <span   style="color:green;" v-show="modal.right_show"><i class="check green circle icon"></i></span>
+                </div>
+            </form>
+            <div class="">
+                <button v-on:click="affRegister" class="ui inverted red circular right floated button"
+                style="margin-top:30px">完成</button>
+            </div>
+        </div>
+             </div>
+        </div>
+
+
+
+        <div v-if="modal.login_show"  class="ui padded modal segment active" >
+            <i v-on:click="unSignUp" class="icon tiny close" ></i>
+            <div class="ui grid divided segment container">
+                <div class="five wide column">
+                    <h4 class="ui inverted header">
+                        <i class="angle left  icon"></i>
+                    </h4>
+                    <h1 class="ui inverted center aligned header" style="font-size: 40px;margin-top:55px">
+                        <p class="sub header">
+                            Welcome to
+                        </p>
+                        10MINs
+                    </h1>
+                </div>
+
+                <div class="eleven wide column">
+                    <h4 class="ui inverted right aligned header">
+                        <a href="#" v-on:click="modalSwitch_rigeser_login" style="color:#ff695e;">or Regiser</a>
+                    </h4>
+                <form class="ui form" >
+                    <div class="" v-show="modal.error_show">
+                        <span class="red error field">invalid account</span>
+                    </div>
+                    <div class="field">
+                        <label>用户名：</label>
+                        <div class="ui left icon input">
+                            <input v-model="username" type="text" placeholder="Username">
+                            <i class="user icon"></i>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>密码：</label>
+                        <div class="ui left icon input">
+                            <input  @keydown.enter="logIn" v-model="password" type="password"  placeholder="Password">
+                            <i class="lock icon"></i>
+                        </div>
+                    </div>
+                    <span  v-show="modal.loginCheck" style="color:red;"><i class="remove red circle icon"></i>账号不存在或密码错误</span>
+
+                </form>
+
+        <div class="">
+        <button @click="logIn"  class="ui inverted red circular right floated button" style="margin-top:30px">登陆</button>
+        </div>
+                    </div>
+                </div>
+            </div>
+
+        <script>
+            vm = new Vue({
+                el:"#app",
+                data:{
+                    //悬浮框弹出动画
+                    fadeIn:"",
+                    // 回复成功提示
+                    fade:"",
+                    //与登陆注册相关的数据
+                     invalidUser:"手机号码为11位数字",
+                     endInvalidUser:"号码已注册",
+                     username:"",
+                     password:"",
+                     re_password:"",
+                     endCheckRe:1,
+
+
+                     //定时器
+                     timer:null,
+
+                    likeVotenum:0,
+                    loadingOrnot:'',
+                    comment_list:[],
+                    save_choice:"save",
+                    user_ticket:"normal",
+                    id:"",
+                    video:"",
+                    comment:"",
+                    likeOrnot:"",
+                    userinfo:"",
+                    msg:"",
+                    //文章评论
+                    articlePingLunLst:[],
+                    //评论赞
+                    pingLunZanLst:[],
+                    //评论回复
+                    pingLunLst:[],
+                    //赞动态列表
+                    zanLst:[],
+                    //动态
+                    dongTaiLst:[],
+                    //私信列表
+                    siXinLst:[],
+                    //文章加载
+                    videoFade:"",
+                    modal:{
+                        //确认删除评论dimmer
+                        queRen:false,
+                        //demmer显示
+                        dimmerShow:false,
+                        //动态展示
+                        dongTaiShow:false,
+                        //回复动态展示
+                        pingLunShow:false,
+                        //赞动态展示
+                        zanShow:false,
+                        //回复提示
+                        siXinTiShi:false,
+                        // 私信
+                        siXinShow:false,
+
+                        //与注册登陆相关的数据
+                        show:false,
+                        lg_show:true,
+                        lt_show:false,
+
+                        inUsernameCheck:false,
+                        endInUsernameCheck:false,
+                        usernameCheck:false,
+                        error_show:false,
+                        right_show:false,
+                        error_show1:false,
+                        error_show2:false,
+                        loginCheck:false,
+
+                        regi_show:false,
+                        login_show:false,
+
+                        //按钮动画和按钮显示数据
+                        showOrnot:false,
+                        comm_bt_shw:false,
+
+                        //显示或不显示悬浮框
+                        info:false,
+                    }
+
+                },
+
+                methods:{
+
+                    //个人资料
+
+                    prePeopleDetail:function(id) {
+                        if(Cookies.get('token')) {
+                            this.peopleDetail(id)
+                        }
+                        else {
+                            this.signUp();
+                        }
+                    },
+
+                    //动态数目清零
+                    zanNumQingLing:function() {
+                        var id=4
+                        reqwest({
+                          url:'/api/changeInfo/'+id,
+                          type:'json',
+                          method:'put',
+                          headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                          success:function(resp){
+                            console.log(resp.status);
+                          }
+                        })
+                    },
+
+                    //动态数目清零
+                    pingLunNumQingLing:function() {
+                        var id=3
+                        reqwest({
+                          url:'/api/changeInfo/'+id,
+                          type:'json',
+                          method:'put',
+                          headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                          success:function(resp){
+                            console.log(resp.status);
+                          }
+                        })
+                    },
+
+                    //动态数目清零
+                    dongTaiNumQingLing:function() {
+                        var id=1
+                        reqwest({
+                          url:'/api/changeInfo/'+id,
+                          type:'json',
+                          method:'put',
+                          headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                          success:function(resp){
+                            console.log(resp.status);
+                          }
+                        })
+                    },
+
+                    //加载评论动态信息
+                           pingLun:function(){
+
+                               var self=this;
+                               reqwest({
+                                   url:'/api/pingLun/',
+                                   type:'json',
+                                   method:'get',
+                                   headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                                   success:function(resp){
+                                       self.pingLunLst = resp;
+                                   }
+                               })
+                           },
+
+                           //加载赞动态信息
+                                  zan:function(){
+                                      var self=this;
+                                      reqwest({
+                                          url:'/api/zan/',
+                                          type:'json',
+                                          method:'get',
+                                          headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                                          success:function(resp){
+                                              self.zanLst = resp;
+                                          }
+                                      })
+                                  },
+
+                                  //加载评论动态信息
+                                         articlePingLun:function(){
+                                             var self=this;
+                                             reqwest({
+                                                 url:'/api/articlePingLun/',
+                                                 type:'json',
+                                                 method:'get',
+                                                 headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                                                 success:function(resp){
+                                                     self.articlePingLunLst = resp;
+                                                 }
+                                             })
+                                         },
+
+
+                                         //加载赞动态信息
+                                                pingLunZan:function(){
+                                                    var self=this;
+                                                    reqwest({
+                                                        url:'/api/pingLunZan/',
+                                                        type:'json',
+                                                        method:'get',
+                                                        headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                                                        success:function(resp){
+                                                            self.pingLunZanLst = resp;
+                                                        }
+                                                    })
+                                                },
+
+
+                    //加载动态信息
+                           dongTai:function() {
+                               var self=this;
+                               reqwest({
+                                   url:'/api/dongTai/',
+                                   type:'json',
+                                   method:'get',
+                                   headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                                   success:function(resp){
+                                       self.dongTaiLst = resp;
+                                   }
+                               })
+                           },
+
+                    //私信数目清零
+                    siXinNumQingLing:function() {
+                        reqwest({
+                          url:'/api/changeInfo/',
+                          type:'json',
+                          method:'put',
+                          headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                          success:function(resp){
+                            console.log(resp.status);
+                          }
+                        })
+                    },
+                     //删除私信
+                    deleteSiXin:function(id) {
+                        reqwest({
+                          url:'/api/siXin/'+id,
+                          type:'json',
+                          method:'delete',
+                          headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                          success:function(resp){
+                            console.log(resp.status);
+                          }
+                        })
+                    },
+                    //回复私信
+                    huiFuSiXin:function(nickname,content,yuanContent,id) {
+                        var self=this
+                        reqwest({
+                          url:'/api/siXin/'+id,
+                          type:'json',
+                          method:'post',
+                          data:{content:nickname+" 回复 你的私信//"+yuanContent+"//"+content},
+                          headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                          success:function(resp){
+                            console.log(resp.status);
+                            self.modal.tiShi=true;
+                            setTimeout(function(){
+                                self.fade='fadeOut'
+                            },2000)
+                            self.timer=setTimeout(function(){
+                                self.modal.tiShi=false;
+                            },4000)
+                          }
+                        })
+                    },
+
+                    //加载个人信息
+                           readinfo:function(){
+                               var self=this;
+                               reqwest({
+                                   url:'/api/theuser/',
+                                   type:'json',
+                                   method:'get',
+                                   headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                                   success:function(resp){
+                                       for(var i=0;i<resp.siXin.length;i++) {
+                                           resp.siXin[i]['huiFu']="";
+                                           resp.siXin[i]['inputApearOride']=false;
+                                           resp.siXin[i]['huiFuBt']=false;
+                                           resp.siXin[i]['quXiaoBt']=false;
+                                           resp.siXin[i]['siXinApearOrHide']=false;
+                                           resp.siXin[i]['qurenShow']=false;
+                                       }
+                                       self.siXinLst=resp.siXin;
+                                       self.userinfo = resp.info;
+                                       self.modalSwitch_lg_lt();
+                                       self.readvote();
+                                       self.readsave();
+
+                                    //    self.modalSwitch_lg_lt();
+                                   }
+                               })
+                           },
+
+                    //个人资料
+                    peopleDetail:function (id) {
+                            Cookies.set('peopleId', id);
+                            window.location.href="/geRenXingXi/";
+                            },
+
+                    // 用户注册登陆相关函数
+
+                    //登陆注册用的函数
+                    unSignUp:function() {
+                        this.modal.login_show=false;
+                        this.modal.dimmerShow=false;
+                        this.modal.regi_show=false;
+                    },
+
+                    signUp:function() {
+                        this.modal.login_show=true;
+                        this.modal.dimmerShow=true;
+                    },
+
+                    affRegister: function() {
+                         if(this.modal.right_show==true&&this.modal.error_show2==true&&this.modal.usernameCheck==true){
+                             this.register();
+                         }
+                    },
+
+                    checkRePassword:function(){
+                        if(this.password==this.re_password) {
+                            this.modal.right_show=true;
+                        }
+                        else {
+                            this.modal.error_show=true;
+
+                        }
+                    },
+
+                    rePswChange:function() {
+                          this.modal.right_show=false;
+                          this.modal.error_show=false;
+                    },
+
+                    passwordChange:function(){
+                        this.modal.error_show1=false;
+                        this.modal.error_show2=false;
+                    },
+
+                    checkPassword:function(){
+                        if (this.password==""||this.password.length<6) {
+                            this.modal.error_show1=true;
+
+                        }
+                        else {
+                            this.modal.error_show2=true;
+
+                        }
+
+                    },
+
+                    userChange:function(){
+                        this.modal.usernameCheck=false;
+                        this.modal.inUsernameCheck=false;
+                        this.modal.endInUsernameCheck=false;
+                    },
+                    checkUsername: function() {
+                        if(this.username!=""){
+                            var re=/\d{11}/;
+                            if(re.test(this.username)) {
+                                this.endCheck();
+                                if(this.endCheckRe==1){
+                                    this.modal.usernameCheck=true;
+
+                                }
+                                else {
+                                    this.modal.endInUsernameCheck=true;
+
+                                }
+
+                            }
+                            else {
+                                this.modal.inUsernameCheck=true;
+
+                            }
+                        }
+                    },
+                    endCheck:function(){
+                        var self=this;
+                        reqwest({
+                          url:'/api/endCheck/',
+                          type:'json',
+                          method:'post',
+                          data:{username:self.username},
+                          success:function(resp){
+                            self.endCheckRe = resp.result;
+                          }
+                        })
+                    },
+
+                    register:function(){
+                        var self = this;
+                        reqwest({
+                            url:'/api/register/',
+                            type:'json',
+                            method:'post',
+                            data:{
+                                username:self.username,
+                                password:self.password,
+                            },
+                            success:function (resp) {
+                                self.clear();
+                                self.modalSwitch_rigeser_login();
+                            },
+
+                    })
+                },
+
+                logIn:function () {
+                    var self = this;
+                    reqwest({
+                        url:'/api/token-auth',
+                        type:'json',
+                        method:'post',
+                        data:{
+                            username:self.username,
+                            password:self.password,
+                        },
+                        success:function (resp) {
+                            console.log(resp);
+                            Cookies.set('token',resp.token);
+                            self.unSignUp();
+                            self.readinfo();
+                            self.readvote();
+                            self.readsave();
+                            self.readcmt();
+                        },
+                        error:function(err){
+                            console.log(err);
+                            self.modal.loginCheck=true;
+                        },
+
+                    })
+                },
+
+                modalSwitch_lg_lt:function () {
+                    this.modal.lg_show=!this.modal.lg_show
+                    this.modal.lt_show=!this.modal.lt_show
+               },
+
+
+            //    modalSwitch:function () {
+            //    this.modal.show = !this.modal.show
+            //    },
+
+               modalSwitch_rigeser_login:function () {
+               this.modal.regi_show = !this.modal.regi_show
+               this.modal.login_show = !this.modal.login_show
+               },
+               clear:function(){
+                   self.username="";
+                   self.password="";
+               },
+
+               //动态数目清零
+               zanNumQingLing:function() {
+                   var id=4
+                   reqwest({
+                     url:'/api/changeInfo/'+id,
+                     type:'json',
+                     method:'put',
+                     headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                     success:function(resp){
+                       console.log(resp.status);
+                     }
+                   })
+               },
+
+               //动态数目清零
+               pingLunNumQingLing:function() {
+                   var id=3
+                   reqwest({
+                     url:'/api/changeInfo/'+id,
+                     type:'json',
+                     method:'put',
+                     headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                     success:function(resp){
+                       console.log(resp.status);
+                     }
+                   })
+               },
+
+               // 资料修改悬浮框
+                      infoShwich1:function(){
+                          if(this.timer){
+                              clearTimeout(this.timer);
+                          }
+
+                          this.fadeIn='zoomIn';
+                          this.modal.info=true
+                      },
+                      infoShwich2:function(){
+                          var self =this;
+                          self.timer=setTimeout(function(){
+                              self.fadeIn='zoomOut';
+                              setTimeout(function(){
+                                  self.modal.info=false
+                              },180)
+
+                          },300)
+
+                      },
+                      //跳转到写文章的页面
+                      write:function(){
+                          if(Cookies.get('token')){
+                              window.location.href="/writeAtc/";
+                          }
+                          else {
+                              this.signUp();
+                          }
+                      },
+
+                //读取数据相关函数
+                    cmtCmtBtn:function(cmt) {
+                        if(cmt=='') {
+                            return 'disabled';
+                        }
+                        else {
+                            return '';
+                        }
+                    },
+
+                    PostcommentCmt:function(id,Cmt){
+                        var self=this;
+                        reqwest({
+                            url:'/api/commentCmt/'+id,
+                            type:'json',
+                            method:'post',
+                            headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                            data:{commentCmt:Cmt},
+                            success:function(resp){
+                                self.readcmt();
+                                console.log(resp.status);
+                                self.comment="";
+                            },
+
+                        })
+                    },
+
+                    deleteCmt:function(id){
+                        var _this=this
+                        reqwest({
+                            url:'/api/deleteCmt/'+id,
+                            type:'json',
+                            method:'delete',
+                            headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                            success:function(resp){
+                                // _this.readcmt();
+                                console.log(resp);
+                            },
+                        })
+                    },
+
+
+
+                    prePstCmtVo:function(id,choice){
+                        if(Cookies.get('token')){
+                            this.postCmtVote(id,choice);
+                        }
+                        else {
+                            this.signUp();
+                        }
+
+                    },
+
+                    inFopage:function(){
+                        if(Cookies.get('token')){
+                            window.location.href="/myinfo/";
+                        }
+                        else {
+                            this.modal.show=true;
+                        }
+
+                    },
+
+                    readcmt:function(){
+                        var self=this;
+                        var id = Cookies.get("video_id");
+                        setTimeout(function(){
+                            self.loadingOrnot="loading"
+                            reqwest({
+                                url:'/api/comment_list/'+id,
+                                type:'json',
+                                method:'get',
+                                headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                                success:function(resp){
+
+                                    for(var i=0;i<resp.length;i++){
+                                        if(resp[i].commenter.id==self.userinfo.id) {
+                                            resp[i]["zhuangTai"]=true;
+                                        }
+                                        else {
+                                            resp[i]["zhuangTai"]=false;
+                                        }
+                                        resp[i]["queRen"]=false;
+                                        resp[i]["menu"]=false;
+                                        resp[i]['subtn']=false;
+                                        resp[i]['btshow']=false;
+                                        resp[i]['show']=true;
+                                        resp[i]['Cmt']="";
+                                        if(Cookies.get('token')) {
+                                            var disLikeTicketList=[];
+                                            var likeTicketList =self.userinfo.cmtuser_tickets.filter(function (ticket) {
+                                                    return (ticket.choice == 'like' && ticket.comment.id==resp[i].id)
+
+                                                })
+                                                if(likeTicketList.length==0) {
+                                                    disLikeTicketList =self.userinfo.cmtuser_tickets.filter(function (ticket) {
+                                                            return (ticket.choice == 'dislike' && ticket.comment.id==resp[i].id)
+                                                        })
+                                                }
+                                                // alert(likeTicketList.length)
+                                                if(likeTicketList.length) {
+
+                                                    resp[i]['zan']=true;
+                                                }
+                                                else if (disLikeTicketList.length) {
+                                                    resp[i]['zan']=false;
+                                                }
+                                                else {
+                                                    resp[i]['zan']=null;
+                                                }
+                                                // alert(resp[i]['zan'])
+                                        }
+
+                                    }
+                                    self.comment_list=resp;
+                                    self.loadingOrnot="";
+                                },
+                            })
+                        },3000)
+
+                    },
+
+
+                    readvote:function(){
+                        var self=this;
+                        var id = Cookies.get("video_id");
+                        reqwest({
+                            url:'/api/the_vote/'+id,
+                            type:'json',
+                            method:'get',
+                            headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                            success:function(resp){
+                                self.user_ticket=resp.choice
+                            },
+                        })
+                    },
+
+                    postCmtVote:function(id,choice){
+                        reqwest({
+                            url:'/api/cmtvote/'+id,
+                            type:'json',
+                            method:'post',
+                            headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                            data:{usercmt_ticket:choice},
+                            success:function(resp){
+                                console.log(resp);
+                            },
+                        })
+                    },
+
+
+
+                    postvote:function(){
+                        var self = this;
+                        var id = Cookies.get("video_id");
+                        reqwest({
+                            url:'/api/vote/'+id,
+                            type:'json',
+                            method:'post',
+                            headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                            data:{user_ticket:self.user_ticket},
+                            success:function(resp){
+                                console.log(resp);
+                            },
+                        })
+
+                    },
+
+                    showOrnot:function(){
+                        if(this.modal.showOrnot==false){
+                            this.modal.showOrnot=true;
+                        }
+                    },
+
+                    unshowOrnot:function(){
+                        if(this.comment==""){
+                            if(this.modal.showOrnot==true){
+                                this.modal.showOrnot=false;
+                            }
+                        }
+                    },
+
+
+                    commenterror:function(){
+                        if(this.comment==""){
+                            return "disabled";
+                        }
+                    },
+
+                    postcomment:function(){
+                        var self=this;
+                        var id=Cookies.get("video_id");
+                        reqwest({
+                            url:'/api/comment/'+id,
+                            type:'json',
+                            method:'post',
+                            headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                            data:{comment:self.comment},
+                            success:function(resp){
+                                console.log(resp.status);
+                                self.comment="";
+                                self.readcmt();
+                            },
+                            // error:function(err){
+                            //     console.log(err);
+                            //     self.modal.show=!self.modal.show;
+                            // },
+
+                        })
+                    },
+
+                    prePostcommentCmt:function(id,Cmt) {
+                        if(Cookies.get('token')){
+                            this.PostcommentCmt(id,Cmt);
+                        }
+                        else {
+                            this.signUp();
+                        }
+                    },
+
+                    prePostcomment:function(){
+
+                            if(Cookies.get("token")){
+                                this.postcomment();
+                            }
+                            else {
+                                this.signUp();
+                            }
+                    },
+                    readsave:function(){
+                        var self=this;
+                        var id=Cookies.get("video_id");
+                        reqwest({
+                            url:'/api/the_save/'+id,
+                            type:'json',
+                            method:'get',
+                            headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                            success:function(resp){
+                                console.log(resp.status);
+                                self.save_choice=resp.save_choice;
+                            }
+                        })
+                    },
+
+                    postsave:function(){
+                        var self = this;
+                        var id = Cookies.get("video_id");
+                        reqwest({
+                            url:'/api/save/'+id,
+                            type:'json',
+                            method:'post',
+                            headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                            data:{save_choice:self.save_choice},
+                            success:function(resp){
+                                console.log(resp.status);
+
+                            },
+                        })
+                    },
+                    prePostsave:function(){
+                        if(Cookies.get('token')){
+                            this.save_choiceswich();
+                        }
+                        else {
+                            this.signUp();
+                        }
+                    },
+                    save_choiceswich:function(){
+                        if(this.save_choice=='save'){
+                            this.save_choice='saved'
+                            this.postsave();
+
+                        }
+                        else {
+                            this.save_choice='save'
+                            this.postsave();
+                        }
+
+
+                    },
+
+                    choicesswich_like:function(){
+                        if(Cookies.get('token')){
+                            if(this.user_ticket=='normal'){
+                                this.user_ticket='like';
+                                this.likeVotenum+=1;
+                                this.postvote();
+                            }
+                            else if (this.user_ticket=='like') {
+                                this.likeVotenum-=1;
+                                this.user_ticket='normal';
+                                this.postvote();
+                            }
+                            else {
+                                this.user_ticket='like';
+                                this.likeVotenum+=1;
+                                this.postvote();
+                            }
+                        }
+                        else {
+                            this.signUp();
+                        }
+
+                    },
+
+                    choicesswich_dislike:function(){
+                        if(Cookies.get('token')){
+                            if (this.user_ticket=='normal'){
+                                this.user_ticket='dislike';
+                                this.postvote();
+                            }
+                            else if (this.user_ticket=='dislike') {
+                                this.user_ticket='normal';
+                                this.postvote();
+                            }
+                            else {
+                                this.user_ticket='dislike';
+                                this.likeVotenum-=1;
+                                this.postvote();
+                            }
+                        }
+                        else {
+                            this.signUp();
+                        }
+
+                    },
+
+                    choice_color:function(){
+                        if(this.user_ticket=='like'){
+                            return 'red';
+                        }
+                        else {
+                            return '';
+                        }
+                    },
+
+                    choice_color1:function(){
+                        if(this.user_ticket=='dislike'){
+                            return 'red';
+                        }
+                        else {
+                            return '';
+                        }
+                    },
+
+
+                    getData:function(){
+			this.videoFade="loading";
+                        var self=this;
+                        var id = Cookies.get("video_id");
+                        reqwest({
+                            url:'/api/video_detail/'+id,
+                            type:'json',
+                            method:'get',
+                            headers:Cookies.get('token')? {'Authorization': 'Token ' + Cookies.get('token')}:{},
+                            success:function(resp){
+                                self.video = resp;
+                                self.likeVotenum=resp.likes;
+				self.videoFade="";
+                            }
+                        })
+                    },
+
+                    //跳转到搜索结果页面
+                           searchbutton:function(){
+                               if(this.searchword!=""){
+                                   if(Cookies.get('token')){
+                                       var tag=this.searchword;
+                                       Cookies.set('searchword', tag);
+                                       window.location.href="/searchpage/";
+                                   }
+                                   else {
+                                       this.signUp();
+                                   }
+                               }
+                           },
+
+
+                    logOut:function() {
+                        Cookies.remove('token',this.token);
+                        this.modalSwitch_lg_lt();
+                        this.userinfo="";
+                        this.user_ticket="normal"
+                        this.save_choice="save"
+                        this.readcmt();
+                    },
+
+
+                    compare:function(){
+                        var self=this;
+                        if(self.password!=self.re_password){
+                            self.modal.error_show=true;
+                        }
+                        else if (self.password=="") {
+                            self.modal.error_show1=true;
+                        }
+                        else {
+                            self.modal.error_show=false;
+                            self.register();
+                        }
+                    },
+
+
+                },
+
+
+
+                computed:{
+
+                    // document.onclick=function(){
+                    //     vm.current=3;
+                    // },
+
+                    animatbt:function(){
+                        if(this.modal.showOrnot){
+                            return " bounceInRight";
+                        }
+                        else {
+                            return " bounceOutLeft";
+                        }
+                    },
+
+
+                    fadeInOut:function () {
+                            if (this.modal.show) {
+                                return ' fadeIn'
+                            }
+                            else {
+                                return ' fadeOut'
+                            }
+                        },
+                },
+
+                ready:function () {
+		 if(Cookies.get('token')){
+       		     this.readinfo();
+                }
+
+      
+                    this.getData();
+                    this.readcmt();
+
+                    // this.likeVote();
+                },
+
+            })
+        </script>
+
+{% endverbatim %}
+    </body>
+</html>

@@ -1,0 +1,30 @@
+body {
+    background-color: rgb(245, 245, 245);
+    font-family: 'Raleway', sans-serif;
+}
+.ui.inverted.top.fixed.red.menu.borderless.menu {
+    height: 50px;
+}
+.ui.raised.container.segments{
+    margin-top: 0px;
+}
+.ui.head.basic.segment {
+    background-image: url('/static/images/bg.png')!important;
+    background-repeat: no-repeat;
+    background-size: cover;
+    /*height:170px;*/
+}
+
+
+form {
+    position: absolute;left: 50%;
+    transform: translate(-50%,0);
+    width:450px;
+}
+
+.ui.circular.image.cover{
+    position: absolute;left: 50%;top: 50%;
+    transform: translate(-50%,-50%);
+    height: 100px;
+    width: 100px;
+}
